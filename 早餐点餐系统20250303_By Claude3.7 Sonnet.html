@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>早餐选择程序</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #e74c3c;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .menu-item {
+            background-color: #fff8f0;
+            border: 1px solid #ffdddd;
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        .menu-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .menu-item h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 16px;
+        }
+        .price {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .spicy {
+            color: #e74c3c;
+            font-size: 12px;
+        }
+        .quantity {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .quantity button {
+            width: 28px;
+            height: 28px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .quantity button:hover {
+            background-color: #e0e0e0;
+        }
+        .quantity input {
+            width: 40px;
+            height: 25px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .special-option {
+            margin-top: 8px;
+        }
+        .order-summary {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #eee;
+        }
+        .total-price {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 10px;
+            color: #e74c3c;
+        }
+        .order-description {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #feffe0;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        button.clear-all {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>早餐选择菜单</h1>
+            <button class="clear-all" onclick="clearAll()">清空选择</button>
+        </div>
+        
+        <div class="menu-container" id="menu">
+            <!-- 菜单项会通过JavaScript动态添加 -->
+        </div>
+        
+        <div class="order-summary" id="orderSummary">
+            <h2>订单明细</h2>
+            <div id="orderItems">
+                <!-- 订单项会通过JavaScript动态添加 -->
+            </div>
+            <div class="total-price" id="totalPrice">总计: 0元</div>
+        </div>
+        
+        <div class="order-description" id="orderDescription">
+            您还没有选择任何早餐。
+        </div>
+    </div>
+
+    <script>
+        // 菜单数据
+        const menuItems = [
+            { id: 1, name: "白糖馒头", price: 1.0, type: "normal" },
+            { id: 2, name: "椒盐花卷", price: 1.5, type: "normal" },
+            { id: 3, name: "红枣红糖馒头", price: 1.5, type: "normal" },
+            { id: 4, name: "花生芝麻糖包", price: 1.5, type: "normal" },
+            { id: 5, name: "白菜素包子", price: 1.5, type: "normal" },
+            { id: 6, name: "酸菜粉丝包", price: 1.5, type: "normal", spicy: true },
+            { id: 7, name: "酱肉大包", price: 2.0, type: "normal" },
+            { id: 8, name: "鲜肉大包", price: 2.0, type: "normal" },
+            { id: 9, name: "红豆卷", price: 2.0, type: "normal" },
+            { id: 10, name: "玉米粑粑", price: 2.0, type: "normal" },
+            { id: 11, name: "椰奶包", price: 2.0, type: "normal" },
+            { id: 12, name: "绿豆/桂花米糕", price: 2.0, type: "normal" },
+            { id: 13, name: "红糖/紫薯米糕", price: 2.0, type: "normal" },
+            { id: 14, name: "玉米蒸饺", type: "special", options: [
+                { name: "单个", price: 1.0, unit: "个" },
+                { name: "五个装", price: 4.0, unit: "份" }
+            ]},
+            { id: 15, name: "烧麦", price: 1.5, type: "normal" },
+            { id: 16, name: "稀饭", price: 2.0, type: "normal" },
+            { id: 17, name: "现磨豆浆", price: 2.0, type: "normal" },
+            { id: 18, name: "五香卤鸡蛋", price: 2.0, type: "normal" }
+        ];
+        
+        // 存储订单数据
+        let orderData = {};
+        
+        // 渲染菜单
+        function renderMenu() {
+            const menuContainer = document.getElementById('menu');
+            menuContainer.innerHTML = '';
+            
+            menuItems.forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                
+                if (item.type === 'normal') {
+                    menuItem.innerHTML = `
+                        <h3>${item.name} ${item.spicy ? '<span class="spicy">（微辣）</span>' : ''}</h3>
+                        <div class="price">${item.price}元</div>
+                        <div class="quantity">
+                            <button onclick="decreaseQuantity('${item.id}')">-</button>
+                            <input type="number" id="quantity-${item.id}" value="0" min="0" onchange="updateOrder()">
+                            <button onclick="increaseQuantity('${item.id}')">+</button>
+                        </div>
+                    `;
+                } else if (item.type === 'special') {
+                    let optionsHtml = '';
+                    item.options.forEach((option, index) => {
+                        optionsHtml += `
+                            <div class="special-option">
+                                <h3>${option.name} (${option.price}元/${option.unit})</h3>
+                                <div class="quantity">
+                                    <button onclick="decreaseQuantity('${item.id}-${index}')">-</button>
+                                    <input type="number" id="quantity-${item.id}-${index}" value="0" min="0" onchange="updateOrder()">
+                                    <button onclick="increaseQuantity('${item.id}-${index}')">+</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    menuItem.innerHTML = `
+                        <h3>${item.name}</h3>
+                        ${optionsHtml}
+                    `;
+                }
+                
+                menuContainer.appendChild(menuItem);
+            });
+        }
+        
+        // 增加数量
+        function increaseQuantity(id) {
+            const input = document.getElementById(`quantity-${id}`);
+            input.value = parseInt(input.value, 10) + 1;
+            updateOrder();
+        }
+        
+        // 减少数量
+        function decreaseQuantity(id) {
+            const input = document.getElementById(`quantity-${id}`);
+            const currentValue = parseInt(input.value, 10);
+            if (currentValue > 0) {
+                input.value = currentValue - 1;
+                updateOrder();
+            }
+        }
+        
+        // 更新订单
+        function updateOrder() {
+            orderData = {};
+            let totalPrice = 0;
+            
+            // 处理普通菜单项
+            menuItems.forEach(item => {
+                if (item.type === 'normal') {
+                    const quantity = parseInt(document.getElementById(`quantity-${item.id}`).value, 10);
+                    if (quantity > 0) {
+                        orderData[item.id] = {
+                            name: item.name,
+                            price: item.price,
+                            quantity: quantity,
+                            spicy: item.spicy || false
+                        };
+                        totalPrice += item.price * quantity;
+                    }
+                } else if (item.type === 'special') {
+                    item.options.forEach((option, index) => {
+                        const quantity = parseInt(document.getElementById(`quantity-${item.id}-${index}`).value, 10);
+                        if (quantity > 0) {
+                            orderData[`${item.id}-${index}`] = {
+                                name: item.name,
+                                optionName: option.name,
+                                price: option.price,
+                                quantity: quantity,
+                                unit: option.unit
+                            };
+                            totalPrice += option.price * quantity;
+                        }
+                    });
+                }
+            });
+            
+            renderOrderSummary(totalPrice);
+            renderOrderDescription(totalPrice);
+        }
+        
+        // 渲染订单明细
+        function renderOrderSummary(totalPrice) {
+            const orderItems = document.getElementById('orderItems');
+            orderItems.innerHTML = '';
+            
+            for (const key in orderData) {
+                const item = orderData[key];
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                
+                if (item.optionName) {
+                    orderItem.innerHTML = `
+                        <div>${item.name}(${item.optionName})</div>
+                        <div>${item.quantity}${item.unit} × ${item.price}元 = ${(item.quantity * item.price).toFixed(2)}元</div>
+                    `;
+                } else {
+                    orderItem.innerHTML = `
+                        <div>${item.name}${item.spicy ? '（微辣）' : ''}</div>
+                        <div>${item.quantity}个 × ${item.price}元 = ${(item.quantity * item.price).toFixed(2)}元</div>
+                    `;
+                }
+                
+                orderItems.appendChild(orderItem);
+            }
+            
+            document.getElementById('totalPrice').innerHTML = `总计: ${totalPrice.toFixed(2)}元`;
+        }
+        
+        // 渲染订单描述
+        function renderOrderDescription(totalPrice) {
+            const orderDescription = document.getElementById('orderDescription');
+            
+            if (Object.keys(orderData).length === 0) {
+                orderDescription.textContent = "您还没有选择任何早餐。";
+                return;
+            }
+            
+            const items = [];
+            for (const key in orderData) {
+                const item = orderData[key];
+                if (item.optionName) {
+                    items.push(`${item.quantity}${item.unit}${item.name}(${item.optionName})`);
+                } else {
+                    items.push(`${item.quantity}个${item.name}${item.spicy ? '（微辣）' : ''}`);
+                }
+            }
+            
+            orderDescription.textContent = `您点了${items.join('、')}，共计${totalPrice.toFixed(2)}元。`;
+        }
+        
+        // 清空所有选择
+        function clearAll() {
+            menuItems.forEach(item => {
+                if (item.type === 'normal') {
+                    document.getElementById(`quantity-${item.id}`).value = 0;
+                } else if (item.type === 'special') {
+                    item.options.forEach((option, index) => {
+                        document.getElementById(`quantity-${item.id}-${index}`).value = 0;
+                    });
+                }
+            });
+            
+            updateOrder();
+        }
+        
+        // 初始化页面
+        window.onload = function() {
+            renderMenu();
+            updateOrder();
+        };
+    </script>
+</body>
+</html>
