@@ -157,7 +157,7 @@
     </div>
 
     <script>
-        // 更新后的菜单数据
+        // 最新菜单数据
         const menuItems = [
             { id: 1, name: "白糖馒头", price: 1.0, type: "normal" },
             { id: 2, name: "椒盐花卷", price: 1.5, type: "normal" },
@@ -170,16 +170,17 @@
             { id: 9, name: "红豆卷", price: 2.0, type: "normal" },
             { id: 10, name: "椰奶包", price: 2.0, type: "normal" },
             { id: 11, name: "紫薯泥馒头", price: 2.0, type: "normal" },
-            { id: 12, name: "绿豆/桂花米糕", price: 2.0, type: "normal" },
-            { id: 13, name: "红糖米糕", price: 2.0, type: "normal" },
-            { id: 14, name: "玉米蒸饺", type: "special", options: [
+            { id: 12, name: "绿豆米糕", price: 2.0, type: "normal" },
+            { id: 13, name: "桂花米糕", price: 2.0, type: "normal" },
+            { id: 14, name: "红糖米糕", price: 2.0, type: "normal" },
+            { id: 15, name: "玉米蒸饺", type: "special", options: [
                 { name: "单个", price: 1.0, unit: "个" },
                 { name: "五个装", price: 4.0, unit: "份" }
             ]},
-            { id: 15, name: "烧麦", price: 1.5, type: "normal" },
-            { id: 16, name: "稀饭", price: 2.0, type: "normal" },
-            { id: 17, name: "现磨豆浆", price: 2.0, type: "normal" },
-            { id: 18, name: "五香卤鸡蛋", price: 2.0, type: "normal" }
+            { id: 16, name: "烧麦", price: 1.5, type: "normal" },
+            { id: 17, name: "稀饭", price: 2.0, type: "normal" },
+            { id: 18, name: "现磨豆浆", price: 2.0, type: "normal" },
+            { id: 19, name: "五香卤鸡蛋", price: 2.0, type: "normal" }
         ];
         
         let orderData = {};
@@ -229,12 +230,16 @@
         
         function increaseQuantity(id) {
             const input = document.getElementById(`quantity-${id}`);
+            if (!input) return;
+            
             input.value = parseInt(input.value) + 1;
             updateOrder();
         }
         
         function decreaseQuantity(id) {
             const input = document.getElementById(`quantity-${id}`);
+            if (!input) return;
+            
             const currentValue = parseInt(input.value);
             if (currentValue > 0) {
                 input.value = currentValue - 1;
@@ -248,7 +253,7 @@
             
             menuItems.forEach(item => {
                 if (item.type === 'normal') {
-                    const quantity = parseInt(document.getElementById(`quantity-${item.id}`).value);
+                    const quantity = parseInt(document.getElementById(`quantity-${item.id}`).value) || 0;
                     if (quantity > 0) {
                         orderData[item.id] = {
                             name: item.name,
@@ -260,7 +265,7 @@
                     }
                 } else if (item.type === 'special') {
                     item.options.forEach((option, index) => {
-                        const quantity = parseInt(document.getElementById(`quantity-${item.id}-${index}`).value);
+                        const quantity = parseInt(document.getElementById(`quantity-${item.id}-${index}`).value) || 0;
                         if (quantity > 0) {
                             orderData[`${item.id}-${index}`] = {
                                 name: item.name,
@@ -295,7 +300,7 @@
                 } else {
                     li.innerHTML = `
                         <span>${item.quantity}个${item.name}${item.spicy ? '（微辣）' : ''}</span>
-                        <span>×${item.price}元 = ${(item.quantity * item.price).toFixed(2)}元</span
+                        <span>×${item.price}元 = ${(item.quantity * item.price).toFixed(2)}元</span>
                     `;
                 }
                 
