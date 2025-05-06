@@ -140,13 +140,13 @@
         </div>
         
         <div class="menu-container" id="menu">
-            <!-- 菜单项会通过JavaScript动态添加 -->
+            <!-- 动态生成菜单项 -->
         </div>
         
         <div class="order-summary" id="orderSummary">
             <h2>订单明细</h2>
             <div id="orderItems">
-                <!-- 订单项会通过JavaScript动态添加 -->
+                <!-- 动态生成订单项 -->
             </div>
             <div class="total-price" id="totalPrice">总计: 0元</div>
         </div>
@@ -157,7 +157,7 @@
     </div>
 
     <script>
-        // 菜单数据
+        // 更新后的菜单数据
         const menuItems = [
             { id: 1, name: "白糖馒头", price: 1.0, type: "normal" },
             { id: 2, name: "椒盐花卷", price: 1.5, type: "normal" },
@@ -168,10 +168,10 @@
             { id: 7, name: "酱肉大包", price: 2.0, type: "normal" },
             { id: 8, name: "鲜肉大包", price: 2.0, type: "normal" },
             { id: 9, name: "红豆卷", price: 2.0, type: "normal" },
-            { id: 10, name: "玉米粑粑", price: 2.0, type: "normal" },
-            { id: 11, name: "椰奶包", price: 2.0, type: "normal" },
+            { id: 10, name: "椰奶包", price: 2.0, type: "normal" },
+            { id: 11, name: "紫薯泥馒头", price: 2.0, type: "normal" },
             { id: 12, name: "绿豆/桂花米糕", price: 2.0, type: "normal" },
-            { id: 13, name: "红糖/紫薯米糕", price: 2.0, type: "normal" },
+            { id: 13, name: "红糖米糕", price: 2.0, type: "normal" },
             { id: 14, name: "玉米蒸饺", type: "special", options: [
                 { name: "单个", price: 1.0, unit: "个" },
                 { name: "五个装", price: 4.0, unit: "份" }
@@ -182,10 +182,8 @@
             { id: 18, name: "五香卤鸡蛋", price: 2.0, type: "normal" }
         ];
         
-        // 存储订单数据
         let orderData = {};
-        
-        // 渲染菜单
+
         function renderMenu() {
             const menuContainer = document.getElementById('menu');
             menuContainer.innerHTML = '';
@@ -196,7 +194,7 @@
                 
                 if (item.type === 'normal') {
                     menuItem.innerHTML = `
-                        <h3>${item.name} ${item.spicy ? '<span class="spicy">（微辣）</span>' : ''}</h3>
+                        <h3>${item.name}${item.spicy ? '<span class="spicy">（微辣）</span>' : ''}</h3>
                         <div class="price">${item.price}元</div>
                         <div class="quantity">
                             <button onclick="decreaseQuantity('${item.id}')">-</button>
@@ -229,50 +227,46 @@
             });
         }
         
-        // 增加数量
         function increaseQuantity(id) {
             const input = document.getElementById(`quantity-${id}`);
-            input.value = parseInt(input.value, 10) + 1;
+            input.value = parseInt(input.value) + 1;
             updateOrder();
         }
         
-        // 减少数量
         function decreaseQuantity(id) {
             const input = document.getElementById(`quantity-${id}`);
-            const currentValue = parseInt(input.value, 10);
+            const currentValue = parseInt(input.value);
             if (currentValue > 0) {
                 input.value = currentValue - 1;
                 updateOrder();
             }
         }
         
-        // 更新订单
         function updateOrder() {
             orderData = {};
             let totalPrice = 0;
             
-            // 处理普通菜单项
             menuItems.forEach(item => {
                 if (item.type === 'normal') {
-                    const quantity = parseInt(document.getElementById(`quantity-${item.id}`).value, 10);
+                    const quantity = parseInt(document.getElementById(`quantity-${item.id}`).value);
                     if (quantity > 0) {
                         orderData[item.id] = {
                             name: item.name,
                             price: item.price,
-                            quantity: quantity,
-                            spicy: item.spicy || false
+                            quantity,
+                            spicy: item.spicy
                         };
                         totalPrice += item.price * quantity;
                     }
                 } else if (item.type === 'special') {
                     item.options.forEach((option, index) => {
-                        const quantity = parseInt(document.getElementById(`quantity-${item.id}-${index}`).value, 10);
+                        const quantity = parseInt(document.getElementById(`quantity-${item.id}-${index}`).value);
                         if (quantity > 0) {
                             orderData[`${item.id}-${index}`] = {
                                 name: item.name,
-                                optionName: option.name,
+                                option: option.name,
                                 price: option.price,
-                                quantity: quantity,
+                                quantity,
                                 unit: option.unit
                             };
                             totalPrice += option.price * quantity;
@@ -285,76 +279,64 @@
             renderOrderDescription(totalPrice);
         }
         
-        // 渲染订单明细
         function renderOrderSummary(totalPrice) {
             const orderItems = document.getElementById('orderItems');
             orderItems.innerHTML = '';
             
-            for (const key in orderData) {
-                const item = orderData[key];
-                const orderItem = document.createElement('div');
-                orderItem.className = 'order-item';
+            Object.values(orderData).forEach(item => {
+                const li = document.createElement('div');
+                li.className = 'order-item';
                 
-                if (item.optionName) {
-                    orderItem.innerHTML = `
-                        <div>${item.name}(${item.optionName})</div>
-                        <div>${item.quantity}${item.unit} × ${item.price}元 = ${(item.quantity * item.price).toFixed(2)}元</div>
+                if (item.option) {
+                    li.innerHTML = `
+                        <span>${item.quantity}${item.unit}${item.name}(${item.option})</span>
+                        <span>×${item.price}元 = ${(item.quantity * item.price).toFixed(2)}元</span>
                     `;
                 } else {
-                    orderItem.innerHTML = `
-                        <div>${item.name}${item.spicy ? '（微辣）' : ''}</div>
-                        <div>${item.quantity}个 × ${item.price}元 = ${(item.quantity * item.price).toFixed(2)}元</div>
+                    li.innerHTML = `
+                        <span>${item.quantity}个${item.name}${item.spicy ? '（微辣）' : ''}</span>
+                        <span>×${item.price}元 = ${(item.quantity * item.price).toFixed(2)}元</span
                     `;
                 }
                 
-                orderItems.appendChild(orderItem);
-            }
+                orderItems.appendChild(li);
+            });
             
-            document.getElementById('totalPrice').innerHTML = `总计: ${totalPrice.toFixed(2)}元`;
+            document.getElementById('totalPrice').textContent = `总计: ${totalPrice.toFixed(2)}元`;
         }
         
-        // 渲染订单描述
         function renderOrderDescription(totalPrice) {
             const orderDescription = document.getElementById('orderDescription');
+            const items = Object.values(orderData).map(item => {
+                return item.option 
+                    ? `${item.quantity}${item.unit}${item.name}(${item.option})` 
+                    : `${item.quantity}个${item.name}${item.spicy ? '（微辣）' : ''}`;
+            });
             
-            if (Object.keys(orderData).length === 0) {
-                orderDescription.textContent = "您还没有选择任何早餐。";
-                return;
-            }
-            
-            const items = [];
-            for (const key in orderData) {
-                const item = orderData[key];
-                if (item.optionName) {
-                    items.push(`${item.quantity}${item.unit}${item.name}(${item.optionName})`);
-                } else {
-                    items.push(`${item.quantity}个${item.name}${item.spicy ? '（微辣）' : ''}`);
-                }
-            }
-            
-            orderDescription.textContent = `您点了${items.join('、')}，共计${totalPrice.toFixed(2)}元。`;
+            orderDescription.innerHTML = items.length 
+                ? `您点了：${items.join('、')}，共计${totalPrice.toFixed(2)}元`
+                : "您还没有选择任何早餐。";
         }
         
-        // 清空所有选择
         function clearAll() {
-            menuItems.forEach(item => {
+            Object.keys(orderData).forEach(key => {
+                const parts = key.split('-');
+                const id = parts[0] * 1;
+                const item = menuItems.find(i => i.id === id);
+                
                 if (item.type === 'normal') {
-                    document.getElementById(`quantity-${item.id}`).value = 0;
+                    document.getElementById(`quantity-${id}`).value = 0;
                 } else if (item.type === 'special') {
-                    item.options.forEach((option, index) => {
-                        document.getElementById(`quantity-${item.id}-${index}`).value = 0;
+                    item.options.forEach((_, index) => {
+                        document.getElementById(`quantity-${id}-${index}`).value = 0;
                     });
                 }
             });
-            
             updateOrder();
         }
         
-        // 初始化页面
-        window.onload = function() {
-            renderMenu();
-            updateOrder();
-        };
+        // 初始化
+        window.onload = renderMenu;
     </script>
 </body>
 </html>
